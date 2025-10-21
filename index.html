@@ -82,7 +82,53 @@ const pages = {
 </pre>
 </div>
 
+<p> <p>
+<p> <p>
 <hr><hr>
+<p> <p>
+<p> <p>
+
+  <div class="terminal">
+  <pre>
+  [bleeding_edge]
+# Auto-update to latest versions, even breaking changes
+ripgrep
+fd
+rust
+my_dev_tool
+
+[experimental]
+# Update to latest stable releases only (no breaking changes)
+my_new_tool
+testing_package
+
+[stable]
+# Update when there are no breaking changes and patches are secure
+git
+neovim
+system_critical_stuff
+
+[locked]
+# Never update - stay at specific version
+ripgrep=14.1.0
+python=3.9.0
+old_dependency=2.1.5
+
+[package_groups]
+@dev-tools=ripgrep,fd,fzf,git,bat
+@system=base-devel,linux,grub
+@media=mpv,ffmpeg,imagemagick
+
+Configuration sections explained:
+bleeding_edge: Packages that update to the absolute latest version, even if it has breaking changes. Use for tools you're actively developing with.
+experimental: Packages that update to the latest stable version but won't get major breaking changes.
+stable: Packages that only receive security patches and bug fixes. Critical system packages go here.
+locked: Packages pinned to a specific version and never updated automatically.
+private: Configuration values (API keys, tokens) that stay local and never sync to other devices.
+sync: Which packages are safe to synchronize to connected devices.
+package_groups: Named groups of packages you can install together with one command.
+
+  <pre>
     `,
   settings: `
     <h2>Settings</h2>
