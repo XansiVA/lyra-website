@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyra – Homepage</title>
+<link rel="stylesheet" href="mocha.css" id="theme-link">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page-border"></div>
+
+<header>
+  <div class="header-left" id="headerTitle"><span>Lyra Homepage</span></div>
+  <div class="header-right">
+    <div class="lang">EN-US</div>
+  </div>
+</header>
+
+<div class="sidebar" id="sidebar">
+  <div class="toggle-btn" id="toggleBtn">&gt;</div>
+  <div class="menu">
+    <a href="#" data-page="home">Home</a>
+    <a href="#" data-page="about">About</a>
+    <a href="#" data-page="testing">Testing</a>
+    <a href="#" data-page="pkgmanager">Pkg Manager</a>
+    <a href="#" id="settingsBtn">Settings</a>
+  </div>
+</div>
+
+<main id="mainContent">
+  <!-- Content dynamically loaded -->
+</main>
+
+<script>
+const toggleBtn = document.getElementById("toggleBtn");
+const sidebar = document.getElementById("sidebar");
+const links = document.querySelectorAll(".menu a");
+const mainContent = document.getElementById("mainContent");
+const headerTitle = document.getElementById("headerTitle");
+
+// Pages
+const pages = {
+  home: `
+    <h2>Welcome to Lyra</h2>
+    <p>Your new Linux distribution project.</p>
+    <div class="terminal">
+      <div class="cmd"><span class="prompt">$</span> sudo lyra install my-package</div>
+      <div class="output">Fetching package...</div>
+      <div class="output">Installation complete.</div>
+    </div>
+  `,
+  about: `
+    <h2>About</h2>
+    <p>Lyra is a modern Linux distro focusing on speed, simplicity, and clarity.</p>
+  `,
+  testing: `
+    <h2>Test Page</h2>
+    <p>This is a test page.</p>
+  `,
+  pkgmanager: `
+    <h2>Pkg Manager</h2>
+    <p></p>
+  `,
+  settings: `
+    <h2>Settings</h2>
+    <p>Change Lyra color scheme:</p>
+    <div class="settings-box">
+      <label for="themeSelect">Catppuccin Theme:</label>
+      <select id="themeSelect">
+        <option value="mocha.css">Mocha (Dark)</option>
+        <option value="frappe.css">Frappé (Dark)</option>
+        <option value="macchiato.css">Macchiato (Dark)</option>
+        <option value="latte.css">Latte (Light)</option>
+      </select>
+    </div>
+  `
+};
+
+// Sidebar toggle
+toggleBtn.addEventListener("click", function(e) {
+  e.stopPropagation();
+  sidebar.classList.toggle("open");
+  toggleBtn.textContent = sidebar.classList.contains("open") ? "<" : ">";
+});
+
+// Navigation
+links.forEach(link => {
+  link.addEventListener("click", e => {
+    e.preventDefault();
+    const pageId = e.target.id;
+    let pageName = "";
+
+    if (pageId === "settingsBtn") {
+      mainContent.innerHTML = pages.settings;
+      addThemeSwitcher();
+      pageName = "Lyra – Settings";
+    } else {
+      const page = e.target.dataset.page;
+      mainContent.innerHTML = pages[page] || `<h2>Error</h2><p>Page not found.</p>`;
+      if (page === "home") pageName = "Lyra Homepage";
+      else if (page === "about") pageName = "Lyra – About";
+      else if (page === "testing") pageName = "Lyra – Testing";
+      else if (page === "pkgmanager") pageName = "Lyra – Pkg Manager";
+    }
+
+    // Animate header text change
+    const oldText = headerTitle.textContent;
+    if (pageName && oldText !== pageName) {
+      headerTitle.classList.add("fade-out");
+      setTimeout(() => {
+        headerTitle.innerHTML = `<span>${pageName}</span>`;
+        headerTitle.classList.remove("fade-out");
+        headerTitle.classList.add("fade-in");
+        setTimeout(() => headerTitle.classList.remove("fade-in"), 400);
+      }, 400);
+    }
+
+    sidebar.classList.remove("open");
+    toggleBtn.textContent = ">";
+    mainContent.scrollTop = 0;
+  });
+});
+
+// Load default page and saved theme
+window.addEventListener("DOMContentLoaded", () => {
+  const savedTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
+  const themeLink = document.getElementById('theme-link');
+  themeLink.setAttribute('href', savedTheme);
+  links[0].click();
+});
+
+// Theme switching function
+function addThemeSwitcher() {
+  const select = document.getElementById("themeSelect");
+  const savedTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
+  select.value = savedTheme;
+  
+  select.addEventListener("change", (e) => {
+    const themeLink = document.getElementById("theme-link");
+    themeLink.setAttribute("href", e.target.value);
+    localStorage.setItem('lyra-theme', e.target.value);
+  });
+}
+</script>
+</body>
+</html>
