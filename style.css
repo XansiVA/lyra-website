@@ -164,6 +164,7 @@ main p {
   padding: 20px;
   font-family: 'Courier New', monospace;
   margin-top: 20px;
+  font-size: 0.85rem;
 }
 
 .terminal .cmd,
