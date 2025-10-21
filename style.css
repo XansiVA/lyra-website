@@ -223,5 +223,13 @@ hr {
 }
 
 pre {
-  font-size: 0.75rem;
+  font-family: inherit;       /* use same font as your normal text */
+  font-size: 1rem;            /* same size as <p> */
+  line-height: 1.6;           /* normal spacing */
+  white-space: pre-wrap;      /* keeps line breaks, but wraps text like <p> */
+  word-wrap: break-word;      /* prevent overflow */
+  background: none;           /* remove terminal background if any */
+  border: none;               /* remove any borders */
+  margin: 0 0 1em 0;          /* same margin as <p> */
+  color: inherit;
 }
