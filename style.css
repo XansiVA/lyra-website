@@ -221,3 +221,7 @@ hr {
   border-top: 1px solid #444;
   margin: 20px 0;
 }
+
+pre {
+  font-size: 0.75rem;
+}
