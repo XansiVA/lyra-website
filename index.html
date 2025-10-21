@@ -118,7 +118,9 @@ old_dependency=2.1.5
 @dev-tools=ripgrep,fd,fzf,git,bat
 @system=base-devel,linux,grub
 @media=mpv,ffmpeg,imagemagick
-
+  <pre>
+  <div>
+  <p>
 Configuration sections explained:
 bleeding_edge: Packages that update to the absolute latest version, even if it has breaking changes. Use for tools you're actively developing with.
 experimental: Packages that update to the latest stable version but won't get major breaking changes.
@@ -127,8 +129,7 @@ locked: Packages pinned to a specific version and never updated automatically.
 private: Configuration values (API keys, tokens) that stay local and never sync to other devices.
 sync: Which packages are safe to synchronize to connected devices.
 package_groups: Named groups of packages you can install together with one command.
-
-  <pre>
+<p>
     `,
   settings: `
     <h2>Settings</h2>
