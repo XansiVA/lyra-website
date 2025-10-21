@@ -44,13 +44,29 @@ const pages = {
   home: `
     <h2>Welcome to Lyra</h2>
     <p>Your new Linux distribution project.</p>
-    <div class="terminal">
-      <div class="cmd"><span class="prompt">/etc/lyra/</span>
-  ├── vault/<div>
-  </div>
-      <div class="output">Fetching package...</div>
-      <div class="output">Installation complete.</div>
-    </div>
+   <div class="terminal">
+<pre>
+/etc/lyra/
+├── vault/
+│   ├── ripgrep/
+│   │   ├── 14.1.0/
+│   │   │   ├── ripgrep-14.1.0-x86_64.tar.gz (frozen, encrypted)
+│   │   │   └── manifest.json
+│   │   └── 15.0.0/
+│   │       ├── ripgrep-15.0.0-x86_64.tar.gz (frozen, encrypted)
+│   │       └── manifest.json
+│   ├── neovim/
+│   └── snapshots/
+│       ├── 15-01-2025_1.json
+│       ├── 15-01-2025_2.json
+│       └── 14-01-2025_1.json
+├── config/
+│   ├── rules.conf
+│   └── .auth (hashed vault password)
+├── history.log
+└── active_packages.json
+</pre>
+</div>
   `,
   about: `
     <h2>About</h2>
@@ -58,10 +74,7 @@ const pages = {
   `,
   testing: `
     <h2>Test Page</h2>
-    <p>This is a test page.</p>
-    <div class="terminal">
-      <div class="cmd"><span class="prompt">/etc/lyra</span></div>
-    </div>
+    <p>This is a test page, nothing more.</p>
   `,
   pkgmanager: `
     <h2>Pkg Manager</h2>
