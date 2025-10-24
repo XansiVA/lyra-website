@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyra – Homepage</title>
+<link rel="stylesheet" href="mocha.css" id="theme-link">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page-border"></div>
+
+<header>
+  <div class="header-left" id="headerTitle"><span>Lyra Homepage</span></div>
+  <div class="header-right">
+    <div class="lang">EN-US</div>
+  </div>
+</header>
+
+<div class="sidebar" id="sidebar">
+  <div class="toggle-btn" id="toggleBtn">&gt;</div>
+  <div class="menu">
+    <a href="#" data-page="home">Home</a>
+    <a href="#" data-page="about">About</a>
+    <a href="#" data-page="testing">Testing</a>
+    <a href="#" data-page="pkgmanager">Pkg Manager</a>
+    <a href="#" id="settingsBtn">Settings</a>
+  </div>
+</div>
+
+<main id="mainContent">
+  <!-- Content dynamically loaded -->
+</main>
+
+<script>
+const toggleBtn = document.getElementById("toggleBtn");
+const sidebar = document.getElementById("sidebar");
+const links = document.querySelectorAll(".menu a");
+const mainContent = document.getElementById("mainContent");
+const headerTitle = document.getElementById("headerTitle");
+
+// Pages
+const pages = {
+  home: `
+    <h2>Welcome to Lyra</h2>
+    <p>Your new Linux distribution project.</p>
+  `,
+  about: `
+    <h2>About</h2>
+    <p>Lyra is a linux distrubution project for Linux From Scratch. Made by Xansi</p>
+  `,
+  testing: `
+    <h2>Test Page</h2>
+    <p>This is a test page, nothing more.</p>
+  `,
+  pkgmanager: `
+    <h2>Pkg Manager</h2>
+    <p>Lyra is a package manager that combines the simplicity of Arch Linux with selective package freezing, multi-version support, per-update rules, and secure cross-device synchronization. It gives users absolute control over package installation, versions, and updates.</p>
+    <p> <p>
+    <h1>Directory Structure<h1>
+       <div class="terminal">
+<pre>
+/etc/lyra/
+├── vault/
+│   ├── ripgrep/
+│   │   ├── 14.1.0/
+│   │   │   ├── ripgrep-14.1.0-x86_64.tar.gz (frozen, encrypted)
+│   │   │   └── manifest.json
+│   │   └── 15.0.0/
+│   │       ├── ripgrep-15.0.0-x86_64.tar.gz (frozen, encrypted)
+│   │       └── manifest.json
+│   ├── neovim/
+│   └── snapshots/
+│       ├── 15-01-2025_1.json
+│       ├── 15-01-2025_2.json
+│       └── 14-01-2025_1.json
+├── config/
+│   ├── rules.conf
+│   └── .auth (hashed vault password)
+├── history.log
+└── active_packages.json
+</pre>
+</div>
+
+<p> <p>
+<p> <p>
+<hr>
+<p> <p>
+<p> <p>
+
+  <div class="terminal">
+  <pre>
+  [bleeding_edge]
+# Auto-update to latest versions, even breaking changes
+ripgrep
+fd
+rust
+my_dev_tool
+
+[experimental]
+# Update to latest stable releases only (no breaking changes)
+my_new_tool
+testing_package
+
+[stable]
+# Update when there are no breaking changes and patches are secure
+git
+neovim
+system_critical_stuff
+
+[locked]
+# Never update - stay at specific version
+ripgrep=14.1.0
+python=3.9.0
+old_dependency=2.1.5
+
+[package_groups]
+@dev-tools=ripgrep,fd,fzf,git,bat
+@system=base-devel,linux,grub
+@media=mpv,ffmpeg,imagemagick
+  </pre>
+  </div>
+
+<hr>
+<pre>
+Configuration sections explained:
+bleeding_edge: Packages that update to the absolute latest version, even if it has breaking changes. Use for tools you're actively developing with.
+experimental: Packages that update to the latest stable version but won't get major breaking changes.
+stable: Packages that only receive security patches and bug fixes. Critical system packages go here.
+locked: Packages pinned to a specific version and never updated automatically.
+private: Configuration values (API keys, tokens) that stay local and never sync to other devices.
+sync: Which packages are safe to synchronize to connected devices.
+package_groups: Named groups of packages you can install together with one command.
+</pre>
+    `,
+  settings: `
+    <h2>Settings</h2>
+    <p>Change Lyra color scheme:</p>
+    <div class="settings-box">
+      <label for="themeSelect">Theme:</label>
+      <select id="themeSelect">
+        <option value="mocha.css">Mocha (Dark)</option>
+        <option value="frappe.css">Frappé (Dark)</option>
+        <option value="macchiato.css">Macchiato (Dark)</option>
+        <option value="latte.css">Latte (Light)</option>
+      </select>
+    </div>
+  `
+};
+
+// Sidebar toggle
+toggleBtn.addEventListener("click", function(e) {
+  e.stopPropagation();
+  sidebar.classList.toggle("open");
+  toggleBtn.textContent = sidebar.classList.contains("open") ? "<" : ">";
+});
+
+// Navigation
+links.forEach(link => {
+  link.addEventListener("click", e => {
+    e.preventDefault();
+    const pageId = e.target.id;
+    let pageName = "";
+
+    if (pageId === "settingsBtn") {
+      mainContent.innerHTML = pages.settings;
+      addThemeSwitcher();
+      pageName = "Lyra – Settings";
+    } else {
+      const page = e.target.dataset.page;
+      mainContent.innerHTML = pages[page] || `<h2>Error</h2><p>Page not found.</p>`;
+      if (page === "home") pageName = "Lyra Homepage";
+      else if (page === "about") pageName = "Lyra – About";
+      else if (page === "testing") pageName = "Lyra – Testing";
+      else if (page === "pkgmanager") pageName = "Lyra – Pkg Manager";
+    }
+
+    // Animate header text change
+    const oldText = headerTitle.textContent;
+    if (pageName && oldText !== pageName) {
+      headerTitle.classList.add("fade-out");
+      setTimeout(() => {
+        headerTitle.innerHTML = `<span>${pageName}</span>`;
+        headerTitle.classList.remove("fade-out");
+        headerTitle.classList.add("fade-in");
+        setTimeout(() => headerTitle.classList.remove("fade-in"), 400);
+      }, 400);
+    }
+
+    sidebar.classList.remove("open");
+    toggleBtn.textContent = ">";
+    mainContent.scrollTop = 0;
+  });
+});
+
+// Load default page and saved theme
+window.addEventListener("DOMContentLoaded", () => {
+  const savedTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
+  const themeLink = document.getElementById('theme-link');
+  themeLink.setAttribute('href', savedTheme);
+  links[0].click();
+});
+
+// Theme switching function
+function addThemeSwitcher() {
+  const select = document.getElementById("themeSelect");
+  const savedTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
+  select.value = savedTheme;
+  
+  select.addEventListener("change", (e) => {
+    const themeLink = document.getElementById("theme-link");
+    themeLink.setAttribute("href", e.target.value);
+    localStorage.setItem('lyra-theme', e.target.value);
+  });
+}
+</script>
+</body>
+</html>
