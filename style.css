@@ -38,7 +38,7 @@ header {
   justify-content: space-between;
   padding: 0 20px;
   z-index: 100;
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 12px 0px;
 }
 
 .header-left {
@@ -86,23 +86,30 @@ header {
   left: -250px;
   width: 250px;
   height: calc(100vh - 60px);
+  background: transparent;
+  border-right: 2px solid transparent;
+  transition: left 0.4s ease, background 0.3s ease, border-right 0.3s ease;
+  z-index: 99;
+  border-radius: 0 0px 0px 0;
+}
+
+.sidebar.open {
   background: var(--surface0);
   border-right: 2px solid var(--accent);
-  transition: left 0.3s ease;
-  z-index: 99;
-  border-radius: 0 12px 12px 0;
 }
 
 .sidebar.open {
   left: 0;
+  background: var(--surface0);
+  border-right: 2px solid var(--accent);
 }
 
 .toggle-btn {
   position: absolute;
   top: 0px;
-  right: -40px;
-  width: 40px;
-  height: 40px;
+  right: -45px;
+  width: 45px;
+  height: 45px;
   background: var(--accent);
   color: var(--base);
   display: flex;
@@ -111,8 +118,8 @@ header {
   cursor: pointer;
   font-size: 1.2rem;
   font-weight: bold;
-  border-radius: 0 8px 8px 0;
-  transition: background 0.2s;
+  border-radius: 0 0px 12px 0;
+  transition: ease 0.2s;
 }
 
 .toggle-btn:hover {
@@ -143,6 +150,34 @@ main {
   margin-top: 60px;
   padding: 40px;
   min-height: calc(100vh - 60px);
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main.page-transition {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
 }
 
 main h2 {
@@ -216,6 +251,81 @@ main p {
   border-color: var(--accent);
 }
 
+.color-input-group {
+  display: grid;
+  grid-template-columns: 200px 80px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.color-input-group label {
+  margin-bottom: 0;
+}
+
+.color-input-group input[type="color"] {
+  width: 60px;
+  height: 40px;
+  border: 2px solid var(--surface2);
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+}
+
+.color-input-group input[type="text"] {
+  padding: 8px;
+  background: var(--surface1);
+  color: var(--text);
+  border: 2px solid var(--surface2);
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.color-input-group input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Custom theme editor animations */
+#customThemeEditor {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transform: translateY(-20px);
+  transition: opacity 0.4s ease, max-height 0.4s ease, transform 0.2s ease;
+}
+
+#customThemeEditor.show {
+  opacity: 1;
+  max-height: 2000px;
+  transform: translateY(0);
+}
+
+/* Theme change swipe animation */
+.theme-swipe {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100vh;
+  background: var(--accent);
+  z-index: 10000;
+  pointer-events: none;
+  transition: left 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.theme-swipe.active {
+  left: 0;
+  animation: swipeAcross 0.6s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+@keyframes swipeAcross {
+  0% { left: -100%; }
+  50% { left: 0; }
+  100% { left: 100%; }
+}
+
 hr {
   border: none;
   border-top: 1px solid #444;
@@ -223,13 +333,55 @@ hr {
 }
 
 pre {
-  font-family: inherit;       /* use same font as your normal text */
-  font-size: 1rem;            /* same size as <p> */
-  line-height: 1.6;           /* normal spacing */
-  white-space: pre-wrap;      /* keeps line breaks, but wraps text like <p> */
-  word-wrap: break-word;      /* prevent overflow */
-  background: none;           /* remove terminal background if any */
-  border: none;               /* remove any borders */
-  margin: 0 0 1em 0;          /* same margin as <p> */
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: none;
+  border: none;
+  margin: 0 0 1em 0;
   color: inherit;
+}
+
+/* Previously viewed section */
+.previously-viewed {
+  margin-top: 20px;
+}
+.previously-viewed h3 {
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.previous-page {
+  border: 1px solid var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.prev-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface0);
+  padding: 10px 12px;
+}
+.prev-title {
+  color: var(--text);
+  font-weight: 600;
+}
+.prev-toggle {
+  background: var(--surface1);
+  color: var(--text);
+  border: 1px solid var(--surface2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.prev-toggle:hover {
+  background: var(--accent);
+  color: var(--base);
+}
+.prev-content {
+  padding: 12px;
+  background: var(--mantle);
 }
