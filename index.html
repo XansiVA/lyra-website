@@ -4,11 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lyra – Homepage</title>
+
+<!-- Preload themes for quicker switching -->
+<link rel="preload" href="mocha.css" as="style">
+<link rel="preload" href="frappe.css" as="style">
+<link rel="preload" href="macchiato.css" as="style">
+<link rel="preload" href="latte.css" as="style">
+
 <link rel="stylesheet" href="mocha.css" id="theme-link">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="page-border"></div>
+<div class="theme-swipe" id="themeSwipe"></div>
 
 <header>
   <div class="header-left" id="headerTitle"><span>Lyra Homepage</span></div>
@@ -33,11 +41,16 @@
 </main>
 
 <script>
+// Persistent page history (keeps previously viewed pages' content)
+const pageHistory = []; // array of page keys in order of viewing, no duplicates
+
 const toggleBtn = document.getElementById("toggleBtn");
 const sidebar = document.getElementById("sidebar");
 const links = document.querySelectorAll(".menu a");
 const mainContent = document.getElementById("mainContent");
 const headerTitle = document.getElementById("headerTitle");
+const themeSwipe = document.getElementById("themeSwipe");
+const themeLink = document.getElementById("theme-link");
 
 // Pages
 const pages = {
@@ -52,14 +65,13 @@ const pages = {
   testing: `
     <h2>Test Page</h2>
     <p>This is a test page, nothing more.</p>
-  `,
-  pkgmanager: `
-    <h2>Pkg Manager</h2>
-    <p>Lyra is a package manager that combines the simplicity of Arch Linux with selective package freezing, multi-version support, per-update rules, and secure cross-device synchronization. It gives users absolute control over package installation, versions, and updates.</p>
-    <p> <p>
-    <h1>Directory Structure<h1>
-       <div class="terminal">
-<pre>
+  `,pkgmanager: `
+  <h2>Pkg Manager</h2>
+  <p>Lyra is a package manager that combines the simplicity of Arch Linux with selective package freezing, multi-version support, per-update rules. It gives users absolute control over package installation, versions, and updates.</p>
+
+  <h1>Directory Structure</h1>
+  <div class="terminal">
+  <pre>
 /etc/lyra/
 ├── vault/
 │   ├── ripgrep/
@@ -79,18 +91,14 @@ const pages = {
 │   └── .auth (hashed vault password)
 ├── history.log
 └── active_packages.json
-</pre>
-</div>
+  </pre>
+  </div>
 
-<p> <p>
-<p> <p>
-<hr>
-<p> <p>
-<p> <p>
+  <hr>
 
   <div class="terminal">
   <pre>
-  [bleeding_edge]
+[bleeding_edge]
 # Auto-update to latest versions, even breaking changes
 ripgrep
 fd
@@ -121,18 +129,77 @@ old_dependency=2.1.5
   </pre>
   </div>
 
-<hr>
-<pre>
+  <hr>
+  <pre>
 Configuration sections explained:
-bleeding_edge: Packages that update to the absolute latest version, even if it has breaking changes. Use for tools you're actively developing with.
+bleeding_edge: Packages that update to the absolute latest version, even if it has breaking changes.
 experimental: Packages that update to the latest stable version but won't get major breaking changes.
 stable: Packages that only receive security patches and bug fixes. Critical system packages go here.
 locked: Packages pinned to a specific version and never updated automatically.
 private: Configuration values (API keys, tokens) that stay local and never sync to other devices.
-sync: Which packages are safe to synchronize to connected devices.
 package_groups: Named groups of packages you can install together with one command.
-</pre>
-    `,
+  </pre>
+
+  <h2>Muting</h2>
+  <p>Muting a package makes it stop functioning until you unmute it. This is useful when you have a package you don't want to uninstall but don't currently want active.</p>
+  <div class="terminal">
+  <pre>
+Before mute:
+ripgrep 14.1.0 [ACTIVE]
+ripgrep 15.0.0 [MUTED]
+
+After: lyra -m ripgrep
+ripgrep 14.1.0 [MUTED]
+ripgrep 15.0.0 [ACTIVE]
+  </pre>
+  </div>
+
+  <h2>Frozen Copies</h2>
+  <p>Frozen copies are immutable, encrypted snapshots of a package version and its dependencies.</p>
+  <div class="terminal">
+  <pre>
+~/.lyra/vault/ripgrep/
+├── 14.1.0/
+│   ├── ripgrep-14.1.0-x86_64.tar.gz (encrypted, compressed binary)
+│   └── manifest.json
+├── 15.0.0/
+│   ├── ripgrep-15.0.0-x86_64.tar.gz (encrypted, compressed binary)
+│   └── manifest.json
+└── 16.0.0/
+    ├── ripgrep-16.0.0-x86_64.tar.gz (encrypted, compressed binary)
+    └── manifest.json
+  </pre>
+  </div>
+
+  <h2>Snapshots</h2>
+  <p>Snapshots are complete records of your system's package state at a specific moment in time.</p>
+  <div class="terminal">
+  <pre>
+~/.lyra/vault/snapshots/
+├── 15-01-2025_1.json
+├── 15-01-2025_2.json
+├── 15-01-2025_3.json
+├── 14-01-2025_1.json
+└── 13-01-2025_1.json
+  </pre>
+  </div>
+
+  <h2>Command Reference</h2>
+  <div class="terminal">
+  <pre>
+lyra -i <package>        # Install a package
+lyra -fc <package>       # Freeze-copy an installed package
+lyra -r <pkg>@<version>  # Restore specific package from frozen copy
+lyra -ss                 # Take full system snapshot
+lyra -U                  # Update system respecting rules.conf
+lyra -hlog               # Show history log
+lyra -search <package>   # Search for packages
+lyra -rmcpkg <package>   # Uninstall + remove frozen copy
+lyra --version           # Show Lyra version
+  </pre>
+  </div>
+`
+,
   settings: `
     <h2>Settings</h2>
     <p>Change Lyra color scheme:</p>
@@ -143,7 +210,75 @@ package_groups: Named groups of packages you can install together with one comma
         <option value="frappe.css">Frappé (Dark)</option>
         <option value="macchiato.css">Macchiato (Dark)</option>
         <option value="latte.css">Latte (Light)</option>
+        <option value="custom.css">Custom Theme</option>
       </select>
+      <button id="customizeThemeBtn" style="margin-top: 15px; padding: 10px 20px; background: var(--accent); color: var(--base); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; width: 100%;">🎨 Customize Theme Colors</button>
+    </div>
+    
+    <div id="customThemeEditor">
+      <h2>Custom Theme Editor</h2>
+      <p>Create your own color palette using the color pickers below:</p>
+      <div class="settings-box">
+        <div class="color-input-group">
+          <label for="base">Base (Background):</label>
+          <input type="color" id="base" value="#303446">
+          <input type="text" id="base-text" value="#303446" placeholder="#303446">
+        </div>
+        <div class="color-input-group">
+          <label for="mantle">Mantle (Darker BG):</label>
+          <input type="color" id="mantle" value="#292c3c">
+          <input type="text" id="mantle-text" value="#292c3c" placeholder="#292c3c">
+        </div>
+        <div class="color-input-group">
+          <label for="crust">Crust (Darkest BG):</label>
+          <input type="color" id="crust" value="#232634">
+          <input type="text" id="crust-text" value="#232634" placeholder="#232634">
+        </div>
+        <div class="color-input-group">
+          <label for="surface0">Surface 0:</label>
+          <input type="color" id="surface0" value="#414559">
+          <input type="text" id="surface0-text" value="#414559" placeholder="#414559">
+        </div>
+        <div class="color-input-group">
+          <label for="surface1">Surface 1:</label>
+          <input type="color" id="surface1" value="#51576d">
+          <input type="text" id="surface1-text" value="#51576d" placeholder="#51576d">
+        </div>
+        <div class="color-input-group">
+          <label for="surface2">Surface 2:</label>
+          <input type="color" id="surface2" value="#626880">
+          <input type="text" id="surface2-text" value="#626880" placeholder="#626880">
+        </div>
+        <div class="color-input-group">
+          <label for="text">Text Color:</label>
+          <input type="color" id="text" value="#c6d0f5">
+          <input type="text" id="text-text" value="#c6d0f5" placeholder="#c6d0f5">
+        </div>
+        <div class="color-input-group">
+          <label for="subtext0">Subtext:</label>
+          <input type="color" id="subtext0" value="#b5bfe2">
+          <input type="text" id="subtext0-text" value="#b5bfe2" placeholder="#b5bfe2">
+        </div>
+        <div class="color-input-group">
+          <label for="accent">Accent Color:</label>
+          <input type="color" id="accent" value="#8caaee">
+          <input type="text" id="accent-text" value="#8caaee" placeholder="#8caaee">
+        </div>
+        <div class="color-input-group">
+          <label for="accent-hover">Accent Hover:</label>
+          <input type="color" id="accent-hover" value="#babbf1">
+          <input type="text" id="accent-hover-text" value="#babbf1" placeholder="#babbf1">
+        </div>
+        <div class="color-input-group">
+          <label for="green">Green (Terminal):</label>
+          <input type="color" id="green" value="#a6d189">
+          <input type="text" id="green-text" value="#a6d189" placeholder="#a6d189">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button id="applyCustomTheme" style="flex: 1; padding: 12px 20px; background: var(--accent); color: var(--base); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold;">✓ Apply Custom Theme</button>
+          <button id="resetCustomTheme" style="flex: 1; padding: 12px 20px; background: var(--surface1); color: var(--text); border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">↺ Reset to Last Theme</button>
+        </div>
+      </div>
     </div>
   `
 };
@@ -159,59 +294,372 @@ toggleBtn.addEventListener("click", function(e) {
 links.forEach(link => {
   link.addEventListener("click", e => {
     e.preventDefault();
-    const pageId = e.target.id;
-    let pageName = "";
+    mainContent.classList.add("page-transition");
 
-    if (pageId === "settingsBtn") {
-      mainContent.innerHTML = pages.settings;
-      addThemeSwitcher();
-      pageName = "Lyra – Settings";
-    } else {
-      const page = e.target.dataset.page;
-      mainContent.innerHTML = pages[page] || `<h2>Error</h2><p>Page not found.</p>`;
-      if (page === "home") pageName = "Lyra Homepage";
-      else if (page === "about") pageName = "Lyra – About";
-      else if (page === "testing") pageName = "Lyra – Testing";
-      else if (page === "pkgmanager") pageName = "Lyra – Pkg Manager";
-    }
+    setTimeout(() => {
+      const pageId = e.target.id;
+      let pageName = "";
 
-    // Animate header text change
-    const oldText = headerTitle.textContent;
-    if (pageName && oldText !== pageName) {
-      headerTitle.classList.add("fade-out");
+      let pageKey = null;
+      if (pageId === "settingsBtn") {
+        pageKey = "settings";
+      } else {
+        pageKey = e.target.dataset.page;
+      }
+
+      const currentHTML = pages[pageKey] || `<h2>Error</h2><p>Page not found.</p>`;
+
+      // Update history: make unique and ordered (most recent first)
+      const existingIndex = pageHistory.indexOf(pageKey);
+      if (existingIndex !== -1) pageHistory.splice(existingIndex, 1);
+      pageHistory.unshift(pageKey);
+
+      // Compose content: current page + previously viewed section
+      const previouslyViewedKeys = pageHistory.slice(1); // exclude current
+      let previousSection = "";
+      if (previouslyViewedKeys.length > 0) {
+        previousSection = `
+          <hr>
+          <div class="previously-viewed">
+            <h3>Previously viewed</h3>
+            ${previouslyViewedKeys.map(k => `
+              <section class="previous-page">
+                <div class="prev-header">
+                  <span class="prev-title">${renderTitleForKey(k)}</span>
+                  <button class="prev-toggle">Show</button>
+                </div>
+                <div class="prev-content" hidden>
+                  ${pages[k]}
+                </div>
+              </section>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      // Set main content
+      mainContent.innerHTML = currentHTML + previousSection;
+
+      // Wire up toggles for previous sections
+      mainContent.querySelectorAll(".previous-page .prev-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const content = btn.parentElement.nextElementSibling;
+          const isHidden = content.hasAttribute("hidden");
+          if (isHidden) {
+            content.removeAttribute("hidden");
+            btn.textContent = "Hide";
+          } else {
+            content.setAttribute("hidden", "");
+            btn.textContent = "Show";
+          }
+        });
+      });
+
+      // Page name for header
+      if (pageKey === "home") pageName = "Lyra Homepage";
+      else if (pageKey === "about") pageName = "Lyra – About";
+      else if (pageKey === "testing") pageName = "Lyra – Testing";
+      else if (pageKey === "pkgmanager") pageName = "Lyra – Pkg Manager";
+      else if (pageKey === "settings") pageName = "Lyra – Settings";
+
+      // Animate header text change
+      const oldText = headerTitle.textContent;
+      if (pageName && oldText !== pageName) {
+        headerTitle.classList.add("fade-out");
+        setTimeout(() => {
+          headerTitle.innerHTML = `<span>${pageName}</span>`;
+          headerTitle.classList.remove("fade-out");
+          headerTitle.classList.add("fade-in");
+          setTimeout(() => headerTitle.classList.remove("fade-in"), 400);
+        }, 400);
+      }
+
+      sidebar.classList.remove("open");
+      toggleBtn.textContent = ">";
+      mainContent.scrollTop = 0;
+
+      // Remove transition class and trigger fade in reset
+      mainContent.classList.remove("page-transition");
+      void mainContent.offsetWidth; // Force reflow
+      mainContent.style.animation = 'none';
       setTimeout(() => {
-        headerTitle.innerHTML = `<span>${pageName}</span>`;
-        headerTitle.classList.remove("fade-out");
-        headerTitle.classList.add("fade-in");
-        setTimeout(() => headerTitle.classList.remove("fade-in"), 400);
-      }, 400);
-    }
+        mainContent.style.animation = '';
+      }, 10);
 
-    sidebar.classList.remove("open");
-    toggleBtn.textContent = ">";
-    mainContent.scrollTop = 0;
+      // Re-attach theme switcher if we’re on settings
+      if (pageKey === "settings") {
+        addThemeSwitcher();
+      }
+    }, 300);
   });
 });
+
+// Render title helper for previously viewed sections
+function renderTitleForKey(key) {
+  if (key === "home") return "Home";
+  if (key === "about") return "About";
+  if (key === "testing") return "Testing";
+  if (key === "pkgmanager") return "Pkg Manager";
+  if (key === "settings") return "Settings";
+  return key;
+}
 
 // Load default page and saved theme
 window.addEventListener("DOMContentLoaded", () => {
   const savedTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
-  const themeLink = document.getElementById('theme-link');
   themeLink.setAttribute('href', savedTheme);
+
+  // Initialize with Home
   links[0].click();
 });
+
+// Smooth theme switching core
+function smoothThemeSwap(setHrefFn, afterApply) {
+  // Batch style changes to next frame
+  requestAnimationFrame(() => {
+    themeSwipe.classList.add("active");
+    setHrefFn();
+
+    // Only end the animation after CSS is loaded/applied
+    themeLink.addEventListener("load", () => {
+      if (typeof afterApply === "function") afterApply();
+      setTimeout(() => {
+        themeSwipe.classList.remove("active");
+      }, 600);
+    }, { once: true });
+  });
+}
 
 // Theme switching function
 function addThemeSwitcher() {
   const select = document.getElementById("themeSelect");
   const savedTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
+  const previousTheme = localStorage.getItem('lyra-previous-theme') || 'mocha.css';
   select.value = savedTheme;
-  
+
+  const customEditor = document.getElementById("customThemeEditor");
+  const customizeBtn = document.getElementById("customizeThemeBtn");
+
+  // Show/hide customize button and editor
+  function toggleCustomEditor(animate = true) {
+    if (select.value === "custom.css") {
+      customizeBtn.style.display = "block";
+    } else {
+      customizeBtn.style.display = "none";
+      if (animate) {
+        customEditor.classList.remove("show");
+      }
+    }
+  }
+
+  // Initialize editor visibility
+  if (savedTheme === "custom.css") {
+    customizeBtn.style.display = "block";
+  } else {
+    customizeBtn.style.display = "none";
+  }
+
+  // Show editor when customize button is clicked
+  if (customizeBtn) {
+    customizeBtn.addEventListener("click", () => {
+      if (customEditor.classList.contains("show")) {
+        customEditor.classList.remove("show");
+        customizeBtn.textContent = "🎨 Customize Theme Colors";
+      } else {
+        customEditor.classList.add("show");
+        loadCustomColors();
+        customizeBtn.textContent = "🎨 Hide Theme Editor";
+      }
+    });
+  }
+
+  // Theme change
   select.addEventListener("change", (e) => {
-    const themeLink = document.getElementById("theme-link");
-    themeLink.setAttribute("href", e.target.value);
-    localStorage.setItem('lyra-theme', e.target.value);
+    const newTheme = e.target.value;
+    const oldTheme = localStorage.getItem('lyra-theme') || 'mocha.css';
+
+    // Save previous theme (but not if switching from custom to custom)
+    if (oldTheme !== "custom.css" && newTheme !== oldTheme) {
+      localStorage.setItem('lyra-previous-theme', oldTheme);
+    }
+
+    if (newTheme !== "custom.css") {
+      // Remove custom style if exists before applying new theme
+      const customStyle = document.getElementById("custom-theme-style");
+      if (customStyle) customStyle.remove();
+
+      smoothThemeSwap(
+        () => themeLink.setAttribute("href", newTheme),
+        () => {
+          localStorage.setItem('lyra-theme', newTheme);
+          toggleCustomEditor(true);
+        }
+      );
+    } else {
+      // Switching to custom: inject variables first, then animate and mark theme
+      loadAndApplyCustomTheme(); // ensure style tag exists before animating
+
+      smoothThemeSwap(
+        () => themeLink.setAttribute("href", "custom.css"),
+        () => {
+          localStorage.setItem('lyra-theme', "custom.css");
+          toggleCustomEditor(true);
+        }
+      );
+    }
   });
+
+  // Load saved custom colors
+  function loadCustomColors() {
+    const colors = ['base', 'mantle', 'crust', 'surface0', 'surface1', 'surface2', 'text', 'subtext0', 'accent', 'accent-hover', 'green'];
+    colors.forEach(color => {
+      const saved = localStorage.getItem(`custom-${color}`);
+      if (saved) {
+        const colorInput = document.getElementById(color);
+        const textInput = document.getElementById(`${color}-text`);
+        if (colorInput) colorInput.value = saved;
+        if (textInput) textInput.value = saved;
+      }
+    });
+  }
+
+  // Load and apply custom theme from localStorage
+  function loadAndApplyCustomTheme() {
+    const colors = {};
+    const colorKeys = ['base', 'mantle', 'crust', 'surface0', 'surface1', 'surface2', 'text', 'subtext0', 'accent', 'accent-hover', 'green'];
+    colorKeys.forEach(key => {
+      const saved = localStorage.getItem(`custom-${key}`);
+      if (saved) {
+        colors[key] = saved;
+      }
+    });
+
+    // Only apply if we have saved colors
+    const customCSS = `
+      :root {
+        --base: ${colors.base || '#303446'};
+        --mantle: ${colors.mantle || '#292c3c'};
+        --crust: ${colors.crust || '#232634'};
+        --surface0: ${colors.surface0 || '#414559'};
+        --surface1: ${colors.surface1 || '#51576d'};
+        --surface2: ${colors.surface2 || '#626880'};
+        --text: ${colors.text || '#c6d0f5'};
+        --subtext0: ${colors.subtext0 || '#b5bfe2'};
+        --accent: ${colors.accent || '#8caaee'};
+        --accent-hover: ${colors['accent-hover'] || '#babbf1'};
+        --green: ${colors.green || '#a6d189'};
+      }
+    `;
+
+    // Remove old custom style if exists
+    const oldStyle = document.getElementById("custom-theme-style");
+    if (oldStyle) oldStyle.remove();
+
+    const styleTag = document.createElement("style");
+    styleTag.id = "custom-theme-style";
+    styleTag.textContent = customCSS;
+    document.head.appendChild(styleTag);
+  }
+
+  // Sync color picker with text input
+  const colorInputs = ['base', 'mantle', 'crust', 'surface0', 'surface1', 'surface2', 'text', 'subtext0', 'accent', 'accent-hover', 'green'];
+  colorInputs.forEach(id => {
+    const colorPicker = document.getElementById(id);
+    const textInput = document.getElementById(`${id}-text`);
+
+    if (colorPicker && textInput) {
+      colorPicker.addEventListener("input", (e) => {
+        textInput.value = e.target.value;
+      });
+
+      textInput.addEventListener("input", (e) => {
+        if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+          colorPicker.value = e.target.value;
+        }
+      });
+    }
+  });
+
+  // Apply custom theme
+  const applyBtn = document.getElementById("applyCustomTheme");
+  if (applyBtn) {
+    applyBtn.addEventListener("click", () => {
+      const colors = {
+        base: document.getElementById("base").value,
+        mantle: document.getElementById("mantle").value,
+        crust: document.getElementById("crust").value,
+        surface0: document.getElementById("surface0").value,
+        surface1: document.getElementById("surface1").value,
+        surface2: document.getElementById("surface2").value,
+        text: document.getElementById("text").value,
+        subtext0: document.getElementById("subtext0").value,
+        accent: document.getElementById("accent").value,
+        'accent-hover': document.getElementById("accent-hover").value,
+        green: document.getElementById("green").value
+      };
+
+      // Save to localStorage
+      Object.keys(colors).forEach(key => {
+        localStorage.setItem(`custom-${key}`, colors[key]);
+      });
+
+      // Inject custom CSS before animating
+      const customCSS = `
+        :root {
+          --base: ${colors.base};
+          --mantle: ${colors.mantle};
+          --crust: ${colors.crust};
+          --surface0: ${colors.surface0};
+          --surface1: ${colors.surface1};
+          --surface2: ${colors.surface2};
+          --text: ${colors.text};
+          --subtext0: ${colors.subtext0};
+          --accent: ${colors.accent};
+          --accent-hover: ${colors['accent-hover']};
+          --green: ${colors.green};
+        }
+      `;
+      const oldStyle = document.getElementById("custom-theme-style");
+      if (oldStyle) oldStyle.remove();
+      const styleTag = document.createElement("style");
+      styleTag.id = "custom-theme-style";
+      styleTag.textContent = customCSS;
+      document.head.appendChild(styleTag);
+
+      // Mark theme as custom and animate after the link load
+      smoothThemeSwap(
+        () => themeLink.setAttribute("href", "custom.css"),
+        () => localStorage.setItem('lyra-theme', "custom.css")
+      );
+    });
+  }
+
+  // Reset to previous theme
+  const resetBtn = document.getElementById("resetCustomTheme");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      const prevTheme = localStorage.getItem('lyra-previous-theme') || 'frappe.css';
+
+      // Remove custom style
+      const customStyle = document.getElementById("custom-theme-style");
+      if (customStyle) customStyle.remove();
+
+      smoothThemeSwap(
+        () => themeLink.setAttribute("href", prevTheme),
+        () => {
+          localStorage.setItem('lyra-theme', prevTheme);
+          select.value = prevTheme;
+          customEditor.classList.remove("show");
+          customizeBtn.style.display = "none";
+        }
+      );
+    });
+  }
+
+  // Load custom theme on page load if selected
+  if (savedTheme === "custom.css") {
+    loadAndApplyCustomTheme();
+  }
 }
 </script>
 </body>
