@@ -1,0 +1,15 @@
+/* custom.css - User Customizable Theme */
+
+:root {
+  --base: #303446;
+  --mantle: #292c3c;
+  --crust: #232634;
+  --surface0: #414559;
+  --surface1: #51576d;
+  --surface2: #626880;
+  --text: #c6d0f5;
+  --subtext0: #b5bfe2;
+  --accent: #8caaee;
+  --accent-hover: #babbf1;
+  --green: #a6d189;
+}
